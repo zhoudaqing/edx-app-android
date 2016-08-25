@@ -1,0 +1,28 @@
+apply plugin: 'com.android.test' // A plugin used for test-only-modules
+
+android {
+    compileSdkVersion rootProject.ext.COMPILE_SDK_VERSION
+    buildToolsVersion rootProject.ext.BUILD_TOOLS_VERSION
+
+    defaultConfig {
+        minSdkVersion rootProject.ext.MIN_SDK_VERSION
+        targetSdkVersion rootProject.ext.TARGET_SDK_VERSION
+
+        // The package name of the test app
+        testApplicationId 'org.edx.mobile.testing.screenshot.test'
+        // The Instrumentation test runner used to run tests.
+        testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
+    }
+
+    // Set the target app project. The module specified here should contain the production code
+    // test should run against.
+    targetProjectPath ':VideoLocker'
+    targetVariant 'prodDebug'
+}
+
+dependencies {
+    // Android Testing Support Library's runner and rules and hamcrest matchers
+    compile 'com.android.support.test:runner:' + rootProject.ext.TEST_RUNNER_VERSION
+    compile 'com.android.support.test:rules:' + rootProject.ext.TEST_RUNNER_VERSION
+    compile 'org.hamcrest:hamcrest-library:' + rootProject.ext.TEST_HAMCREST_VERSION
+}

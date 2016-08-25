@@ -1,13 +1,6 @@
 import org.edx.builder.TaskHelper
 
 buildscript {
-    repositories {
-        jcenter()
-        mavenCentral()
-        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-
-    }
-
     dependencies {
         classpath 'org.yaml:snakeyaml:1.14'
 
@@ -29,13 +22,6 @@ apply plugin: 'com.android.application'
 apply plugin: 'newrelic'
 apply plugin: 'com.facebook.testing.screenshot'
 apply from: 'jacoco.gradle'
-
-repositories {
-    mavenCentral()
-    maven { url 'https://maven.fabric.io/public' }
-    maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-}
-
 
 class AndroidHelper {
 
@@ -189,9 +175,9 @@ dependencies {
     }
     testCompile 'com.squareup.okhttp3:mockwebserver:3.0.1'
 
-    androidTestCompile 'com.android.support.test:runner:0.4.1'
-    androidTestCompile 'com.android.support.test:rules:0.4.1'
-    androidTestCompile 'org.hamcrest:hamcrest-library:1.3'
+    androidTestCompile 'com.android.support.test:runner:' + TEST_RUNNER_VERSION
+    androidTestCompile 'com.android.support.test:rules:' + TEST_RUNNER_VERSION
+    androidTestCompile 'org.hamcrest:hamcrest-library:' + TEST_HAMCREST_VERSION
     androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.1'
     androidTestCompile ("org.mockito:mockito-core:1.10.19"){
         exclude group: 'org.hamcrest'
@@ -206,6 +192,9 @@ configurations {
 }
 
 android {
+
+    publishNonDefault true // Enables instrumentation testing from separate modules
+
     def config = new TaskHelper().loadConfig(project)
 
     signingConfigs {
@@ -217,7 +206,7 @@ android {
         }
     }
 
-    compileSdkVersion 23
+    compileSdkVersion COMPILE_SDK_VERSION
     buildToolsVersion BUILD_TOOLS_VERSION
 
     useLibrary 'org.apache.http.legacy'
@@ -232,9 +221,8 @@ android {
 
     defaultConfig {
         applicationId "org.edx.mobile"
-        // minimum version is Android 4.0
-        minSdkVersion 14
-        targetSdkVersion 21
+        minSdkVersion MIN_SDK_VERSION
+        targetSdkVersion TARGET_SDK_VERSION
 
         versionCode getVersionCode()
         versionName getVersionName()
