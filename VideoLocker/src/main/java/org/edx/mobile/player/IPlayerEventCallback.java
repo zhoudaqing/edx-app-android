@@ -1,7 +1,5 @@
 package org.edx.mobile.player;
 
-import android.view.View;
-
 import java.io.Serializable;
 
 public interface IPlayerEventCallback extends Serializable {
@@ -10,4 +8,5 @@ public interface IPlayerEventCallback extends Serializable {
     void onPlaybackStarted();
     void onPlaybackComplete();
     void saveCurrentPlaybackPosition(int currentPosition);
+    void onFullscreenStateRequested(boolean fullscreen);
 }

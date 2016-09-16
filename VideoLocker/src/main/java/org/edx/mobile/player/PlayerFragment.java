@@ -5,7 +5,6 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Point;
@@ -48,10 +47,8 @@ import org.edx.mobile.module.facebook.IUiLifecycleHelper;
 import org.edx.mobile.module.prefs.LoginPrefs;
 import org.edx.mobile.util.AppConstants;
 import org.edx.mobile.util.BrowserUtil;
-import org.edx.mobile.util.DeviceSettingUtil;
 import org.edx.mobile.util.ListUtil;
 import org.edx.mobile.util.NetworkUtil;
-import org.edx.mobile.util.OrientationDetector;
 import org.edx.mobile.util.UiUtil;
 import org.edx.mobile.view.adapters.ClosedCaptionAdapter;
 import org.edx.mobile.view.dialog.CCLanguageDialogFragment;
@@ -96,8 +93,6 @@ public class PlayerFragment extends BaseFragment implements IPlayerListener, Ser
     private boolean isPrepared = false;
     private boolean isAutoPlayDone = false;
     private boolean stateSaved = false;
-    private boolean orientationLocked = false;
-    private transient OrientationDetector orientationDetector;
     private transient IPlayerEventCallback callback;
     private View.OnClickListener nextListner;
     private View.OnClickListener prevListner;
@@ -120,7 +115,6 @@ public class PlayerFragment extends BaseFragment implements IPlayerListener, Ser
 
     private EnumSet<VideoNotPlayMessageType> curMessageTypes =  EnumSet.noneOf(VideoNotPlayMessageType.class);
 
-    private boolean isManualFullscreen = false;
     private int currentPosition = 0;
 
     private final Logger logger = new Logger(getClass().getName());
@@ -186,7 +180,6 @@ public class PlayerFragment extends BaseFragment implements IPlayerListener, Ser
 
             }
         });
-
     }
 
     /**
@@ -207,120 +200,40 @@ public class PlayerFragment extends BaseFragment implements IPlayerListener, Ser
         }
     }
 
-    private void reAttachPlayEventListener() {
-        // set the fullscreen flag to correct value
-        if (player != null) {
-            boolean isLandscape = isScreenLandscape();
-            player.setFullScreen(isLandscape);
-            player.setPlayerListener(this);
-        }
-    }
-
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        try {
-            restore(savedInstanceState);
-            audioManager = (AudioManager) getActivity().getSystemService(Context.AUDIO_SERVICE);
-
-            orientationDetector = new OrientationDetector(getActivity()) {
-                private boolean isLastRotationOn = false;
-                @Override
-                protected void onChanged() {
-                    if (isResumed()) {
-                        allowSensorOrientationIfApplicable();
-                    }
-                }
-
-                @Override
-                protected void onUpdate() {
-                    super.onUpdate();
-                    boolean isRotationOn = DeviceSettingUtil.isDeviceRotationON(getActivity());
-                    if ( !isRotationOn && isLastRotationOn) {
-                        // rotation just got turned OFF, so exit fullscreen
-                        exitFullScreen();
-                    }
-                    isLastRotationOn = isRotationOn;
-                }
-            };
-            getView().findViewById(R.id.panel_video_only_on_web).setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-
-                    final StringBuffer urlStringBuffer = new StringBuffer();
-                    if (! videoEntry.url.startsWith("http://") && ! videoEntry.url.startsWith("https://")) {
-                        urlStringBuffer.append("http://");
-                        urlStringBuffer.append( videoEntry.url);
-                    } else {
-                        urlStringBuffer.append( videoEntry.url);
-                    }
-                    BrowserUtil.open(getActivity(),
-                            urlStringBuffer.toString());
-                }
-
-            });
-        } catch(Exception ex) {
-            logger.error(ex);
-        }
-    }
-
-    private void allowSensorOrientationIfApplicable() {
-        try{
-            boolean isRotationOn = DeviceSettingUtil.isDeviceRotationON(getActivity());
-            if (isRotationOn) {
-                // do UI operations only if the fragment is resumed
-                if (orientationDetector.isLandscape()) {
-                    if (isScreenLandscape()) {
-                        logger.debug("Allowing sensor from landscape rotation");
-                        isManualFullscreen = false;
-                        allowSensorOrientation();
-                    }
-                } else if (orientationDetector.isPortrait()) {
-                    if ( !isScreenLandscape()) {
-                        logger.debug("Allowing sensor from portrait rotation");
-                        isManualFullscreen = false;
-                        allowSensorOrientation();
-                    }
-                }
-            } else {
-                logger.debug("Locking to portrait as Device Screen Rotation is OFF");
-                // lock to portrait
-                if ( !isManualFullscreen) {
-                    exitFullScreen();
+        restore(savedInstanceState);
+        audioManager = (AudioManager) getActivity().getSystemService(Context.AUDIO_SERVICE);
+        getView().findViewById(R.id.panel_video_only_on_web).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final StringBuffer urlStringBuffer = new StringBuffer();
+                if (!videoEntry.url.startsWith("http://") && !videoEntry.url.startsWith("https://")) {
+                    urlStringBuffer.append("http://");
+                    urlStringBuffer.append(videoEntry.url);
                 } else {
-                    logger.debug("You are in manual fullscreen mode");
+                    urlStringBuffer.append(videoEntry.url);
                 }
+                BrowserUtil.open(getActivity(), urlStringBuffer.toString());
             }
-        } catch(Exception e) {
-            logger.error(e);
-        }
+        });
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        logger.debug("Player fragment start");
 
-        stateSaved = false;
-        try{
-            Preview preview = (Preview) getView().findViewById(R.id.preview);
-            if(player!=null){
-                player.setPreview(preview);
+        if(curMessageTypes.contains(VideoNotPlayMessageType.IS_VIDEO_ONLY_ON_WEB)) {
+            showVideoNotAvailable(VideoNotPlayMessageType.IS_VIDEO_ONLY_ON_WEB);
+        }
 
-                // setup the flat if player is fullscreen
-                player.setFullScreen(isScreenLandscape());
-            }
-            if(curMessageTypes.contains(VideoNotPlayMessageType.IS_VIDEO_ONLY_ON_WEB)) {
-                showVideoNotAvailable(VideoNotPlayMessageType.IS_VIDEO_ONLY_ON_WEB);
-            } if(curMessageTypes.contains(VideoNotPlayMessageType.IS_VIDEO_MESSAGE_DISPLAYED)){
-                showVideoNotAvailable(VideoNotPlayMessageType.IS_VIDEO_MESSAGE_DISPLAYED);
-            }else if(curMessageTypes.contains(VideoNotPlayMessageType.IS_NETWORK_MESSAGE_DISPLAYED)){
-                showNetworkError();
-            } else if(curMessageTypes.contains(VideoNotPlayMessageType.IS_SHOWN_WIFI_SETTINGS_MESSAGE)){
-                showWifiSettingsMessage();
-            }
-        }catch(Exception e){
-            logger.error(e);
+        if(curMessageTypes.contains(VideoNotPlayMessageType.IS_VIDEO_MESSAGE_DISPLAYED)){
+            showVideoNotAvailable(VideoNotPlayMessageType.IS_VIDEO_MESSAGE_DISPLAYED);
+        } else if(curMessageTypes.contains(VideoNotPlayMessageType.IS_NETWORK_MESSAGE_DISPLAYED)){
+            showNetworkError();
+        } else if(curMessageTypes.contains(VideoNotPlayMessageType.IS_SHOWN_WIFI_SETTINGS_MESSAGE)){
+            showWifiSettingsMessage();
         }
     }
 
@@ -388,7 +301,6 @@ public class PlayerFragment extends BaseFragment implements IPlayerListener, Ser
         uiHelper.onPause();
 
         try{
-            orientationDetector.stop();
             handler.removeCallbacks(unfreezeCallback);
             handler.removeCallbacks(requestAccessibilityFocusCallback);
             freezePlayer();
@@ -492,10 +404,7 @@ public class PlayerFragment extends BaseFragment implements IPlayerListener, Ser
     public synchronized void playOrPrepare(String path, int seekTo, String title,
                                            TranscriptModel trModel, DownloadEntry video, boolean prepareOnly) {
         isPrepared = false;
-        // block to portrait while preparing
-        if ( !isScreenLandscape()) {
-            exitFullScreen();
-        }
+
 
         // reset the player, so that pending play requests will be cancelled
         try {
@@ -569,7 +478,7 @@ public class PlayerFragment extends BaseFragment implements IPlayerListener, Ser
 
             controller.setNextPreviousListeners(nextListner, prevListner);
             player.setController(controller);
-            reAttachPlayEventListener();
+            player.setPlayerListener(this);
 
         } catch(Exception e) {
             logger.error(e);
@@ -584,7 +493,7 @@ public class PlayerFragment extends BaseFragment implements IPlayerListener, Ser
 
     private void updateNextPreviousListeners() {
         if (player != null) {
-            if (isScreenLandscape()) {
+            if (player.isFullScreen()) {
                 player.setNextPreviousListeners(nextListner, prevListner);
             }
             else {
@@ -644,7 +553,6 @@ public class PlayerFragment extends BaseFragment implements IPlayerListener, Ser
 
     private void hideNetworkError() {
         try {
-            unlockOrientation();
             View errorView = getView().findViewById(R.id.panel_network_error);
             errorView.setVisibility(View.GONE);
             curMessageTypes.remove(VideoNotPlayMessageType.IS_SHOWN_WIFI_SETTINGS_MESSAGE);
@@ -662,9 +570,6 @@ public class PlayerFragment extends BaseFragment implements IPlayerListener, Ser
                     hideNetworkError();
                 } else {
                     if(!curMessageTypes.contains(VideoNotPlayMessageType.IS_VIDEO_MESSAGE_DISPLAYED)){
-                        //This has been commented after Lou's suggestion
-                        unlockOrientation();
-                        //lockOrientation();
                         hideCCPopUp();
                         hideSettingsPopUp();
                         player.hideController();
@@ -706,10 +611,6 @@ public class PlayerFragment extends BaseFragment implements IPlayerListener, Ser
                 // player got error, 
                 // mark player as prepared, because it is not in preparing state anymore
                 isPrepared = true;
-
-                //This has been put after Lou's Suggestion
-                unlockOrientation();
-                //lockOrientation();
 
                 hideProgress();
 
@@ -758,8 +659,6 @@ public class PlayerFragment extends BaseFragment implements IPlayerListener, Ser
         if (getActivity() == null) {
             return;
         }
-
-        allowSensorOrientation();
 
         if (!isResumed() || !getUserVisibleHint()) {
             freezePlayer();
@@ -864,92 +763,39 @@ public class PlayerFragment extends BaseFragment implements IPlayerListener, Ser
         }
     }
 
+    public void requestFullScreenState(boolean fullscreen) {
+        if (isPrepared && player!=null) {
+            player.setFullScreen(fullscreen);
+        }
+    }
+
     @Override
     public void onFullScreen(boolean isFullScreen) {
         if (isPrepared) {
-            isManualFullscreen = isFullScreen;
-            if (isFullScreen) {
-                enterFullScreen();
-            } else {
-                exitFullScreen();
+            if (environment.getSegment() == null) {
+                logger.warn("segment is NOT initialized, cannot capture event enterFullScreen");
+                return;
             }
+            if (player == null) {
+                logger.warn("player instance is null, cannot capture event enterFullScreen");
+                return;
+            }
+            if (videoEntry == null) {
+                logger.warn("video model instance is null, cannot capture event enterFullScreen");
+                return;
+            }
+
+            environment.getSegment().trackVideoOrientation(videoEntry.videoId,
+                    player.getCurrentPosition() / AppConstants.MILLISECONDS_PER_SECOND,
+                    true, videoEntry.eid, videoEntry.lmsUrl);
+
+            if (callback != null) {
+                callback.onFullscreenStateRequested(isFullScreen);
+            }
+
         } else {
             logger.debug("Player not prepared ?? full screen will NOT work!");
         }
-    }
-
-    private void enterFullScreen() {
-        try {
-            if (getActivity() != null) {
-                getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-            }
-            if (isPrepared) {
-                if (environment.getSegment() == null) {
-                    logger.warn("segment is NOT initialized, cannot capture event enterFullScreen");
-                    return;
-                }
-                if (player == null) {
-                    logger.warn("player instance is null, cannot capture event enterFullScreen");
-                    return;
-                }
-                if (videoEntry == null) {
-                    logger.warn("video model instance is null, cannot capture event enterFullScreen");
-                    return;
-                }
-
-                environment.getSegment().trackVideoOrientation(videoEntry.videoId,
-                        player.getCurrentPosition() / AppConstants.MILLISECONDS_PER_SECOND,
-                        true, videoEntry.eid, videoEntry.lmsUrl);
-            }
-        } catch(Exception ex) {
-            logger.error(ex);
-        }
-    }
-
-    private void exitFullScreen() {
-        try {
-            if (getActivity() != null) {
-                getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-            }
-            if (isPrepared) {
-                if (environment.getSegment() == null) {
-                    logger.warn("segment is NOT initialized, cannot capture event exitFullScreen");
-                    return;
-                }
-                if (player == null) {
-                    logger.warn("player instance is null, cannot capture event exitFullScreen");
-                    return;
-                }
-                if (videoEntry == null) {
-                    logger.warn("video model instance is null, cannot capture event exitFullScreen");
-                    return;
-                }
-
-                environment.getSegment().trackVideoOrientation(videoEntry.videoId,
-                        player.getCurrentPosition() / AppConstants.MILLISECONDS_PER_SECOND,
-                        false, videoEntry.eid, videoEntry.lmsUrl);
-            }
-        } catch(Exception ex) {
-            logger.error(ex);
-        }
-    }
-
-    private void allowSensorOrientation() {
-        if (isPrepared && !orientationLocked) {
-            getActivity().setRequestedOrientation(
-                    ActivityInfo.SCREEN_ORIENTATION_SENSOR);
-        }
-    }
-
-    private boolean isScreenLandscape() {
-        try {
-            int orientation = getResources().getConfiguration().orientation;
-            logger.debug("Current orientation = " + orientation);
-            return (orientation == Configuration.ORIENTATION_LANDSCAPE);
-        } catch(Exception ex) {
-            logger.error(ex);
-        }
-        return false;
     }
 
     private Runnable unfreezeCallback = new Runnable() {
@@ -975,7 +821,6 @@ public class PlayerFragment extends BaseFragment implements IPlayerListener, Ser
                         player.pause();
                     }
                 }
-                orientationDetector.start();
                 handler.sendEmptyMessage(MSG_TYPE_TICK);
             }
 
@@ -1043,24 +888,6 @@ public class PlayerFragment extends BaseFragment implements IPlayerListener, Ser
         } catch (Exception e) {
             logger.error(e);
         }
-    }
-
-    /**
-     * LectureComplete dialog was creating problems if orientation is allowed when dialog is shown.
-     * So, locked orientation while the LectureComplete dialog is showing.
-     */
-    public void lockOrientation() {
-        orientationLocked = true;
-        if (isScreenLandscape()) {
-            enterFullScreen();
-        } else {
-            exitFullScreen();
-        }
-    }
-
-    public void unlockOrientation() {
-        orientationLocked = false;
-        allowSensorOrientationIfApplicable();
     }
 
     @Override
@@ -1850,7 +1677,6 @@ public class PlayerFragment extends BaseFragment implements IPlayerListener, Ser
                     hideNetworkError();
                 } else {
                     if(!curMessageTypes.contains(VideoNotPlayMessageType.IS_VIDEO_MESSAGE_DISPLAYED) && !player.isInError()){
-                        unlockOrientation();
                         hideCCPopUp();
                         hideSettingsPopUp();
                         if ( !player.isReset()) {
