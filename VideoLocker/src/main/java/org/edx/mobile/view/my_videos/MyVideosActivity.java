@@ -1,5 +1,6 @@
 package org.edx.mobile.view.my_videos;
 
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
@@ -33,13 +34,18 @@ public class MyVideosActivity extends BaseVideosDownloadStateActivity {
 
         // now init the tabs
         initializeTabs();
+    }
 
-        // Full-screen video in landscape.
-        if (isLandscape()) {
-            getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                    WindowManager.LayoutParams.FLAG_FULLSCREEN);
-            setActionBarVisible(false);
-        }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        handleConfigurationChange();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        handleConfigurationChange();
     }
 
     private void initializeTabs() {
@@ -69,5 +75,17 @@ public class MyVideosActivity extends BaseVideosDownloadStateActivity {
     protected void onOnline() {
         super.onOnline();
         offlineBar.setVisibility(View.GONE);
+    }
+
+    private void handleConfigurationChange() {
+        // Full-screen video in landscape.`
+        if (isLandscape()) {
+            getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            setActionBarVisible(false);
+        } else {
+            setActionBarVisible(true);
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        }
     }
 }

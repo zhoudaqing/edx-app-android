@@ -5,7 +5,6 @@ import android.view.View;
 import java.io.Serializable;
 
 public interface IPlayerEventCallback extends Serializable {
-
     void onError();
     void onPlaybackStarted();
     void onPlaybackComplete();

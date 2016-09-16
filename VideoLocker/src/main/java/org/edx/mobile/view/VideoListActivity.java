@@ -2,15 +2,18 @@ package org.edx.mobile.view;
 
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.ActionBar;
+import android.util.DisplayMetrics;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 import org.edx.mobile.R;
 import org.edx.mobile.base.BaseVideosDownloadStateActivity;
@@ -32,6 +35,7 @@ public class VideoListActivity extends BaseVideosDownloadStateActivity
     private MenuItem selectAllMenuItem;
     private View offlineBar;
     private PlayerFragment playerFragment;
+    private RelativeLayout.LayoutParams playerLayoutParams;
     private VideoListFragment listFragment;
     private final Handler playHandler = new Handler();
     private Runnable playPending;
@@ -40,7 +44,6 @@ public class VideoListActivity extends BaseVideosDownloadStateActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video_list);
-
         restore(savedInstanceState);
 
         if (playerFragment == null) {
@@ -63,12 +66,29 @@ public class VideoListActivity extends BaseVideosDownloadStateActivity
         listFragment = (VideoListFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.list_fragment);
         listFragment.setCallback(this);
+    }
 
+    private void handleConfigurationChange() {
         // Full-screen video in landscape.
+        LinearLayout playerContainer = (LinearLayout)findViewById(R.id.container_player);
         if (isLandscape()) {
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                     WindowManager.LayoutParams.FLAG_FULLSCREEN);
             setActionBarVisible(false);
+
+            playerLayoutParams = (RelativeLayout.LayoutParams)playerContainer.getLayoutParams();
+            DisplayMetrics metrics = getResources().getDisplayMetrics();
+            playerContainer.setLayoutParams(new RelativeLayout.LayoutParams(metrics.widthPixels, metrics.heightPixels));
+            playerContainer.requestLayout();
+
+        } else {
+            if (playerLayoutParams != null) {
+                playerContainer.setLayoutParams(playerLayoutParams);
+                playerContainer.requestLayout();
+            }
+
+            setActionBarVisible(true);
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         }
     }
 
@@ -84,6 +104,7 @@ public class VideoListActivity extends BaseVideosDownloadStateActivity
     @Override
     protected void onResume() {
         super.onResume();
+
         try {
             View container = findViewById(R.id.container_player);
             if (container == null || container.getVisibility() != View.VISIBLE) {
@@ -93,15 +114,14 @@ public class VideoListActivity extends BaseVideosDownloadStateActivity
         } catch (Exception ex) {
             logger.error(ex);
         }
+
+        handleConfigurationChange();
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        ActionBar bar = getSupportActionBar();
-        if (bar != null && !isLandscape()) {
-            bar.show();
-        }
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        handleConfigurationChange();
     }
 
     @Override

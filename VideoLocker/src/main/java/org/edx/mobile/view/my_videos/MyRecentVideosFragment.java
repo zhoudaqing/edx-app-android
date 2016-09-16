@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -15,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 
 import com.google.inject.Inject;
 
@@ -56,6 +58,7 @@ public class MyRecentVideosFragment extends BaseFragment implements IPlayerEvent
     private MyRecentVideoAdapter adapter;
     private ListView videoListView;
     private PlayerFragment playerFragment;
+    private RelativeLayout.LayoutParams playerLayoutParams;
     private DeleteVideoDialogFragment deleteDialogFragment;
     private int playingVideoIndex = -1;
     private DownloadEntry videoModel;
@@ -144,6 +147,25 @@ public class MyRecentVideosFragment extends BaseFragment implements IPlayerEvent
     public void onResume() {
         super.onResume();
         addToRecentAdapter();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        // make the video player fullscreen in landscape
+        LinearLayout playerContainer = (LinearLayout) getView().findViewById(R.id.container_player);
+
+        if (isLandscape()) {
+            playerLayoutParams = (RelativeLayout.LayoutParams)playerContainer.getLayoutParams();
+            DisplayMetrics metrics = getResources().getDisplayMetrics();
+            playerContainer.setLayoutParams(new RelativeLayout.LayoutParams(metrics.widthPixels, metrics.heightPixels));
+            playerContainer.requestLayout();
+        }
+        else if (playerLayoutParams != null) {
+            playerContainer.setLayoutParams(playerLayoutParams);
+            playerContainer.requestLayout();
+        }
     }
 
     @Override
@@ -359,7 +381,9 @@ public class MyRecentVideosFragment extends BaseFragment implements IPlayerEvent
         }
 
         // add and display player fragment
-        playerFragment = new PlayerFragment();
+        if (playerFragment == null) {
+            playerFragment = new PlayerFragment();
+        }
         // set callback for player events
         playerFragment.setCallback(this);
         playerFragment.setNextPreviousListeners(getNextListener(), getPreviousListener());

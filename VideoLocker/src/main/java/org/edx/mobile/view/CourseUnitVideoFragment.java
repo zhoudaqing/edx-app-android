@@ -37,6 +37,12 @@ import java.io.File;
 public class CourseUnitVideoFragment extends CourseUnitFragment
     implements IPlayerEventCallback{
 
+    private final static String HAS_NEXT_UNIT_ID = "has_next_unit";
+    private boolean hasNextUnit;
+
+    private final static String HAS_PREV_UNIT_ID = "has_prev_unit";
+    private boolean hasPreviousUnit;
+
     protected final Logger logger = new Logger(getClass().getName());
     VideoBlockModel unit;
     private PlayerFragment playerFragment;
@@ -47,16 +53,11 @@ public class CourseUnitVideoFragment extends CourseUnitFragment
     private LectureModel lecture;
     private EnrolledCoursesResponse enrollment;
     private DownloadEntry videoModel;
+    private LinearLayout.LayoutParams playerLayoutParams;
 
     private Runnable playPending;
     private final Handler playHandler = new Handler();
     private View messageContainer;
-
-    private final static String HAS_NEXT_UNIT_ID = "has_next_unit";
-    private boolean hasNextUnit;
-
-    private final static String HAS_PREV_UNIT_ID = "has_prev_unit";
-    private boolean hasPreviousUnit;
 
     /**
      * Create a new instance of fragment
@@ -570,29 +571,25 @@ public class CourseUnitVideoFragment extends CourseUnitFragment
     };
 
     private void updateUIForOrientation() {
-        //TODO - should we use load different layout file?
+        LinearLayout playerContainer = (LinearLayout) getView().findViewById(R.id.player_container);
+
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             messageContainer.setVisibility(View.GONE);
-            LinearLayout playerContainer = (LinearLayout)getView().findViewById(R.id.player_container);
-            if ( playerContainer != null ) {
-                DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
-                float screenHeight = displayMetrics.heightPixels;
-                playerContainer.setLayoutParams(new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT, (int) screenHeight));
-                playerContainer.requestLayout();
-            }
-        } else {
-            messageContainer.setVisibility(View.VISIBLE);
-            LinearLayout playerContainer = (LinearLayout)getView().findViewById(R.id.player_container);
-            if ( playerContainer != null ) {
-                DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
-                float screenWidth = displayMetrics.widthPixels;
-                float ideaHeight = screenWidth * 9 / 16;
 
-                playerContainer.setLayoutParams(new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT, (int) ideaHeight));
+            // make screen full size
+            playerLayoutParams = (LinearLayout.LayoutParams)playerContainer.getLayoutParams();
+            DisplayMetrics metrics = getResources().getDisplayMetrics();
+            playerContainer.setLayoutParams(new LinearLayout.LayoutParams(metrics.widthPixels, metrics.heightPixels));
+            playerContainer.requestLayout();
+        }
+
+        else {
+            if (playerLayoutParams != null) {
+                playerContainer.setLayoutParams(playerLayoutParams);
                 playerContainer.requestLayout();
             }
+
+            messageContainer.setVisibility(View.VISIBLE);
         }
     }
 
