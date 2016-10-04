@@ -1,5 +1,6 @@
 package org.edx.mobile.base;
 
+import android.content.res.AssetManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.content.res.Configuration;
@@ -21,6 +22,7 @@ import android.widget.TextView;
 
 import com.google.inject.Inject;
 
+import org.edx.mobile.BuildConfig;
 import org.edx.mobile.R;
 import org.edx.mobile.core.IEdxEnvironment;
 import org.edx.mobile.event.LogoutEvent;
@@ -29,12 +31,18 @@ import org.edx.mobile.interfaces.NetworkObserver;
 import org.edx.mobile.interfaces.NetworkSubject;
 import org.edx.mobile.logger.Logger;
 import org.edx.mobile.util.NetworkUtil;
+import org.edx.mobile.util.ResourceUtil;
 import org.edx.mobile.util.ViewAnimationUtil;
 import org.edx.mobile.view.ICommonUI;
 import org.edx.mobile.view.NavigationFragment;
+import org.edx.mobile.view.Router;
 import org.edx.mobile.view.dialog.AlertDialogFragment;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import de.greenrobot.event.EventBus;
@@ -48,8 +56,6 @@ public abstract class BaseFragmentActivity extends BaseAppActivity
     private boolean isUiOnline = true;
     private boolean isConnectedToWifi = false;
     private boolean isActivityStarted = false;
-    @Inject
-    protected IEdxEnvironment environment;
     private List<NetworkObserver> networkObservers = new ArrayList<>();
 
     public void registerNetworkObserver(NetworkObserver observer) {
@@ -125,7 +131,6 @@ public abstract class BaseFragmentActivity extends BaseAppActivity
         }
     }
 
-
     private void updateActionBarShadow() {
         //Check for JellyBeans version
         if (Build.VERSION.SDK_INT == 18) {
@@ -150,7 +155,6 @@ public abstract class BaseFragmentActivity extends BaseAppActivity
             }
         }
     }
-
 
     @Override
     protected void onStop() {

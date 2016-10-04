@@ -1,9 +1,5 @@
 package org.edx.mobile.core;
 
-
-import android.content.Context;
-import android.support.annotation.NonNull;
-
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -19,43 +15,41 @@ import org.edx.mobile.util.Config;
 import org.edx.mobile.view.Router;
 
 import de.greenrobot.event.EventBus;
-import roboguice.RoboGuice;
 
 @Singleton
 public class EdxEnvironment implements IEdxEnvironment {
+    @Inject
+    private IDatabase database;
 
     @Inject
-    IDatabase database;
+    private IStorage storage;
 
     @Inject
-    IStorage storage;
+    private IDownloadManager downloadManager;
 
     @Inject
-    IDownloadManager downloadManager;
+    private UserPrefs userPrefs;
 
     @Inject
-    UserPrefs userPrefs;
+    private LoginPrefs loginPrefs;
 
     @Inject
-    LoginPrefs loginPrefs;
+    private ISegment segment;
 
     @Inject
-    ISegment segment;
+    private NotificationDelegate notificationDelegate;
 
     @Inject
-    NotificationDelegate notificationDelegate;
+    private Router router;
 
     @Inject
-    Router router;
+    private Config config;
 
     @Inject
-    Config config;
+    private ServiceManager serviceManager;
 
     @Inject
-    ServiceManager serviceManager;
-
-    @Inject
-    EventBus eventBus;
+    private EventBus eventBus;
 
     @Override
     public IDatabase getDatabase() {

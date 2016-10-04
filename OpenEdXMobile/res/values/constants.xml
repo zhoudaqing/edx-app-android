@@ -1,6 +1,8 @@
 <resources>
+    <string name="base_assets_url">file:///android_asset</string>
     <string name="eula_file_link">file:///android_asset/EULA.htm</string>
     <string name="course_not_listed_file_name">file:///android_asset/COURSE_NOT_LISTED.htm</string>
+    <string name="whats_new_assets_folder">whats_new</string>
 
     <!-- Speed Test.
     Once this feature is ready, migrate this to the YAML config -->

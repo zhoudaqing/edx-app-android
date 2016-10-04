@@ -4,6 +4,9 @@
     <string name="app_shortcut_name">@string/shortcut_name</string>
     <string name="phonetic_app_name">@string/phonetic_platform_name</string>
 
+    <!-- What's New -->
+    <string name="whats_new_title">Version {version} New Features!</string>
+
     <!-- Certificates -->
 
     <!-- Label congratulation user on finishing course -->

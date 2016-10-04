@@ -53,6 +53,8 @@ public class Router {
     @Inject
     private LoginPrefs loginPrefs;
 
+    private boolean whatsNewHandled;
+
     public void showDownloads(Activity sourceActivity) {
         Intent downloadIntent = new Intent(sourceActivity, DownloadListActivity.class);
         sourceActivity.startActivity(downloadIntent);
@@ -331,5 +333,17 @@ public class Router {
 
     public void showWebViewDialog(@NonNull Activity activity, @NonNull String url, @Nullable String dialogTitle) {
         activity.startActivity(WebViewDialogActivity.newIntent(activity, url, dialogTitle));
+    }
+
+    public boolean getWhatsNewHandled() {
+        return whatsNewHandled;
+    }
+
+    public void setWhatsNewHandled(boolean whatsNewHandled) {
+        this.whatsNewHandled=whatsNewHandled;
+    }
+
+    public void showWhatsNew(@NonNull Activity activity, @NonNull String url, @Nullable String dialogTitle) {
+        showWebViewDialog(activity, url, dialogTitle);
     }
 }

@@ -22,6 +22,7 @@ import org.edx.mobile.R;
 import org.edx.mobile.core.EdxDefaultModule;
 import org.edx.mobile.core.IEdxEnvironment;
 import org.edx.mobile.logger.Logger;
+import org.edx.mobile.module.prefs.AppInfoPrefManager;
 import org.edx.mobile.module.prefs.PrefManager;
 import org.edx.mobile.module.storage.IStorage;
 import org.edx.mobile.receivers.NetworkConnectivityReceiver;
@@ -56,6 +57,9 @@ public abstract class MainApplication extends MultiDexApplication {
     @Inject
     protected Config config;
 
+    @Inject
+    private AppInfoPrefManager appInfoPrefManager;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -72,6 +76,9 @@ public abstract class MainApplication extends MultiDexApplication {
                 (Module) RoboGuice.newDefaultRoboModule(this), (Module) new EdxDefaultModule(this));
 
         injector.injectMembers(this);
+
+        appInfoPrefManager=RoboGuice.getInjector(this).getInstance(AppInfoPrefManager.class);
+        appInfoPrefManager.setAtLeastOneSession();
 
         // initialize Fabric
         if (config.getFabricConfig().isEnabled() && !BuildConfig.DEBUG) {
@@ -97,7 +104,7 @@ public abstract class MainApplication extends MultiDexApplication {
             com.facebook.Settings.setApplicationId(config.getFacebookConfig().getFacebookAppId());
         }
 
-        if (needVersionUpgrade(this)) {
+        if (needVersionUpgrade()) {
             // try repair of download data if app version is updated
             injector.getInstance(IStorage.class).repairDownloadCompletionData();
         }
@@ -112,14 +119,13 @@ public abstract class MainApplication extends MultiDexApplication {
         );
     }
 
-    private boolean needVersionUpgrade(Context context) {
+    private boolean needVersionUpgrade() {
         boolean needVersionUpgrade = false;
-        PrefManager.AppInfoPrefManager pmanager = new PrefManager.AppInfoPrefManager(context);
-        Long previousVersion = pmanager.getAppVersionCode();
+        Long previousVersion = appInfoPrefManager.getAppVersionCode();
         final int curVersion = BuildConfig.VERSION_CODE;
         if (previousVersion < curVersion) {
             needVersionUpgrade = true;
-            pmanager.setAppVersionCode(curVersion);
+            appInfoPrefManager.setAppVersionCode(curVersion);
         }
         return needVersionUpgrade;
     }

@@ -2,8 +2,12 @@ package org.edx.mobile.module.prefs;
 
 import android.content.Context;
 import android.content.SharedPreferences.Editor;
+import android.support.annotation.NonNull;
 
 import org.edx.mobile.base.MainApplication;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * This is a Utility for reading and writing to shared preferences.
@@ -34,6 +38,17 @@ public class PrefManager {
     public void put(String key, String value) {
         Editor edit = context.getSharedPreferences(prefName, Context.MODE_PRIVATE).edit();
         edit.putString(key, value).commit();
+    }
+
+    /**
+     * Puts given key-values pair to the Shared Preferences.
+     *
+     * @param key
+     * @param valueSet - String set
+     */
+    public void putStringSet(String key, Set<String> valueSet) {
+        Editor edit = context.getSharedPreferences(prefName, Context.MODE_PRIVATE).edit();
+        edit.putStringSet(key, valueSet).commit();
     }
 
     /**
@@ -73,7 +88,7 @@ public class PrefManager {
      * Returns String value for the given key, null if no value is found.
      *
      * @param key
-     * @return String
+     * @return String set
      */
     public String getString(String key) {
         if (context != null) {
@@ -83,6 +98,19 @@ public class PrefManager {
         return null;
     }
 
+    /**
+     * Returns String value set for the given key, null if no value is found.
+     *
+     * @param key
+     * @return String
+     */
+    public Set<String> getStringSet(String key) {
+        if (context != null) {
+            return context.getSharedPreferences(prefName, Context.MODE_PRIVATE)
+                    .getStringSet(key, null);
+        }
+        return null;
+    }
 
     /**
      * Returns boolean value for the given key, can set default value as well.
@@ -136,60 +164,6 @@ public class PrefManager {
                     .getFloat(key, defaultValue);
         }
         return defaultValue;
-    }
-
-    public static class AppInfoPrefManager extends PrefManager {
-        public AppInfoPrefManager(Context context) {
-            super(context, PrefManager.Pref.APP_INFO);
-        }
-
-        public long getAppVersionCode() {
-            return getLong(Key.APP_VERSION_CODE);
-        }
-
-        public void setAppVersionCode(long code) {
-            super.put(Key.APP_VERSION_CODE, code);
-        }
-
-        public String getAppVersionName() {
-            return getString(Key.APP_VERSION_NAME);
-        }
-
-        public void setAppVersionName(String code) {
-            super.put(Key.APP_VERSION_NAME, code);
-        }
-
-        public boolean isNotificationEnabled() {
-            return getBoolean(Key.NOTIFICATION, false);
-        }
-
-        public void setNotificationEnabled(boolean enabled) {
-            super.put(Key.NOTIFICATION, enabled);
-        }
-
-        public boolean isAppUpgradeNeedSyncWithParse() {
-            return getBoolean(Key.AppUpgradeNeedSyncWithParse, false);
-        }
-
-        public void setAppUpgradeNeedSyncWithParse(boolean enabled) {
-            super.put(Key.AppUpgradeNeedSyncWithParse, enabled);
-        }
-
-        public boolean isAppSettingNeedSyncWithParse() {
-            return getBoolean(Key.AppSettingNeedSyncWithParse, false);
-        }
-
-        public void setAppSettingNeedSyncWithParse(boolean enabled) {
-            super.put(Key.AppSettingNeedSyncWithParse, enabled);
-        }
-
-        public String getPrevNotificationHashKey() {
-            return getString(Key.AppNotificationPushHash);
-        }
-
-        public void setPrevNotificationHashKey(String code) {
-            super.put(Key.AppNotificationPushHash, code);
-        }
     }
 
     public static class UserPrefManager extends PrefManager {
@@ -254,8 +228,8 @@ public class PrefManager {
         public static final String AppSettingNeedSyncWithParse = "AppSettingNeedSyncWithParse";
         public static final String UserPrefVideoModel = "UserPrefVideoModel";
         public static final String LAST_COURSE_STRUCTURE_FETCH = "LastCourseStructureFetch";
-
-
+        public static final String WHATS_NEW_URLS_SHOWN = "WhatsNewUrlsShown";
+        public static final String FIRST_SESSION = "FirstSession";
     }
 
     public static final class Value {

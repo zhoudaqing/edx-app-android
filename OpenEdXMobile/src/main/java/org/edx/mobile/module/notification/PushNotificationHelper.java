@@ -12,9 +12,12 @@ import com.google.gson.JsonSyntaxException;
 
 import org.edx.mobile.logger.Logger;
 import org.edx.mobile.module.analytics.ISegment;
+import org.edx.mobile.module.prefs.AppInfoPrefManager;
 import org.edx.mobile.module.prefs.PrefManager;
 import org.edx.mobile.view.MyCoursesListActivity;
 import org.edx.mobile.view.Router;
+
+import roboguice.RoboGuice;
 
 /**
  * Common helper for Parse Notification
@@ -52,9 +55,9 @@ public class PushNotificationHelper {
     }
 
     public static boolean hasNotificationHash(Context context, String notificationId) {
-        PrefManager.AppInfoPrefManager pmanager = new PrefManager.AppInfoPrefManager(context);
-        String prevHashCode = pmanager.getPrevNotificationHashKey();
-        pmanager.setPrevNotificationHashKey(notificationId);
+        AppInfoPrefManager appInfoPrefManager= RoboGuice.getInjector(context).getInstance(AppInfoPrefManager.class);
+        String prevHashCode = appInfoPrefManager.getPrevNotificationHashKey();
+        appInfoPrefManager.setPrevNotificationHashKey(notificationId);
         if (TextUtils.isEmpty(notificationId) && TextUtils.isEmpty(prevHashCode))
             return true;
         if (notificationId != null && notificationId.equals(prevHashCode))
