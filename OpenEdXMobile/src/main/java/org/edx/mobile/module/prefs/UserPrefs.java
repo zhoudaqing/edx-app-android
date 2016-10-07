@@ -2,6 +2,8 @@ package org.edx.mobile.module.prefs;
 
 
 import android.content.Context;
+import android.os.Build;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
@@ -67,7 +69,14 @@ public class UserPrefs {
         if( downloadToSDCard && externalDirs.length > 1 && externalDirs[1] != null){
             // If a secondary location is in the list it is the SD Card location we
             // would like to use.
-            android = externalDirs[1];
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
+                    Environment.isExternalStorageRemovable(externalDirs[1])){
+                // Verify that the storage location is an external storage location
+                // and only use this path if it is.
+                android = externalDirs[1];
+            } else {
+                android = externalDirs[1];
+            }
         }
 
         File downloadsDir = new File(android, "data");
