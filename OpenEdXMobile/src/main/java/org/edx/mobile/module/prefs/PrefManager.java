@@ -234,6 +234,7 @@ public class PrefManager {
         public static final String FEATURES = "features";
         public static final String APP_INFO = "pref_app_info";
         public static final String USER_PREF = "pref_user";
+        public static final String SD_CARD = "pref_sd_card";
 
         public static String[] getAll() {
             return new String[]{LOGIN, WIFI, VIDEOS, FEATURES, APP_INFO, USER_PREF};
@@ -266,6 +267,7 @@ public class PrefManager {
         public static final String AppSettingNeedSyncWithParse = "AppSettingNeedSyncWithParse";
         public static final String UserPrefVideoModel = "UserPrefVideoModel";
         public static final String LAST_COURSE_STRUCTURE_FETCH = "LastCourseStructureFetch";
+        public static final String DOWNLOAD_TO_SDCARD = "download_to_sdcard";
         /**
          * For downloaded videos to appear in order on the My Videos screen, we need
          * to have the videos' courses data cached. This is the key to a persistent
