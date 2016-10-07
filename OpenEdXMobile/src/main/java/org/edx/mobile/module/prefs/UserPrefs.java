@@ -2,18 +2,15 @@ package org.edx.mobile.module.prefs;
 
 
 import android.content.Context;
-import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import org.edx.mobile.logger.Logger;
 import org.edx.mobile.model.api.ProfileModel;
-import org.edx.mobile.user.ProfileImage;
 
 import java.io.File;
 import java.io.IOException;
@@ -56,10 +53,22 @@ public class UserPrefs {
     public File getDownloadFolder() {
         ProfileModel profile = getProfile();
 
-        File android = new File(Environment.getExternalStorageDirectory(), "Android");
+        // Retrieves a list of external storage directories on the Device.
+        // 4.4+ Android devices will return a list of external locations if the
+        // SD card is available. Otherwise it will return a single location to store data.
+        File[] externalDirs = ContextCompat.getExternalFilesDirs(context, "Android");
+        File android;
+        //TODO: add setting where the user sets the location.
+        if( externalDirs.length > 1 && externalDirs[1] != null){
+            // If a secondary location is in the list it should be the actual storage location
+            android = externalDirs[1];
+        } else {
+            //Preferred location will be either the internal partition or an SDCard
+            android = externalDirs[0];
+        }
+
         File downloadsDir = new File(android, "data");
-        File packDir = new File(downloadsDir, context.getPackageName());
-        File edxDir = new File(packDir, profile.username);
+        File edxDir = new File(downloadsDir, profile.username);
         edxDir.mkdirs();
         try {
             File noMediaFile = new File(edxDir, ".nomedia");
