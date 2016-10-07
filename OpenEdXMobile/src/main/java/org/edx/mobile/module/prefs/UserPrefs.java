@@ -58,13 +58,16 @@ public class UserPrefs {
         // SD card is available. Otherwise it will return a single location to store data.
         File[] externalDirs = ContextCompat.getExternalFilesDirs(context, "Android");
         File android;
-        //TODO: add setting where the user sets the location.
-        if( externalDirs.length > 1 && externalDirs[1] != null){
-            // If a secondary location is in the list it should be the actual storage location
+        //Android Preferred location will be either the internal partition or an SDCard
+        android = externalDirs[0];
+
+        PrefManager prefManager = new PrefManager(context, PrefManager.Pref.SD_CARD);
+        boolean downloadToSDCard = prefManager.getBoolean(PrefManager.Key.DOWNLOAD_TO_SDCARD, false);
+
+        if( downloadToSDCard && externalDirs.length > 1 && externalDirs[1] != null){
+            // If a secondary location is in the list it is the SD Card location we
+            // would like to use.
             android = externalDirs[1];
-        } else {
-            //Preferred location will be either the internal partition or an SDCard
-            android = externalDirs[0];
         }
 
         File downloadsDir = new File(android, "data");
