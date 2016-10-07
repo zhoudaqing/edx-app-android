@@ -7,15 +7,18 @@ import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.Switch;
+import android.widget.TextView;
 
 import com.google.inject.Inject;
 
 import org.edx.mobile.R;
 import org.edx.mobile.base.BaseFragment;
+import org.edx.mobile.core.EdxEnvironment;
 import org.edx.mobile.core.IEdxEnvironment;
 import org.edx.mobile.logger.Logger;
 import org.edx.mobile.module.analytics.ISegment;
 import org.edx.mobile.module.prefs.PrefManager;
+import org.edx.mobile.module.prefs.UserPrefs;
 import org.edx.mobile.view.dialog.IDialogCallback;
 import org.edx.mobile.view.dialog.NetworkCheckDialogFragment;
 
@@ -29,10 +32,15 @@ public class SettingsFragment extends BaseFragment {
     protected IEdxEnvironment environment;
 
     @Inject
+    private UserPrefs userPrefs;
+
+    @Inject
     ExtensionRegistry extensionRegistry;
 
     private Switch wifiSwitch;
     private Switch mSDCardSwitch;
+    private LinearLayout mDownloadLocation;
+    private TextView mDownloadLocationText;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -47,9 +55,13 @@ public class SettingsFragment extends BaseFragment {
         final View layout = inflater.inflate(R.layout.fragment_settings, container, false);
         wifiSwitch = (Switch) layout.findViewById(R.id.wifi_setting);
         mSDCardSwitch = (Switch) layout.findViewById(R.id.download_location_switch);
+        mDownloadLocation = (LinearLayout) layout.findViewById(R.id.download_location_pref);
+        mDownloadLocationText = (TextView) layout.findViewById(R.id.download_location_desc);
 
         updateWifiSwitch();
         updateSDCardSwitch();
+        updateDownloadLocationSetting();
+
         final LinearLayout settingsLayout = (LinearLayout) layout.findViewById(R.id.settings_layout);
         for (SettingsExtension extension : extensionRegistry.forType(SettingsExtension.class)) {
             extension.onCreateSettingsView(settingsLayout);
@@ -77,6 +89,19 @@ public class SettingsFragment extends BaseFragment {
         });
     }
 
+    private void updateDownloadLocationSetting(){
+        final PrefManager prefManager = new PrefManager(
+                getActivity().getBaseContext(), PrefManager.Pref.DOWNLOAD_LOCATION_PREF);
+        mDownloadLocation.setOnClickListener(null);
+        mDownloadLocationText.setText(userPrefs.getDownloadFolderPath());
+        mDownloadLocation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //Create and show dialog to select the location.
+            }
+        });
+    }
+
     private void updateSDCardSwitch(){
         final PrefManager prefManager =
                 new PrefManager(getActivity().getBaseContext(), PrefManager.Pref.SD_CARD);
@@ -86,6 +111,7 @@ public class SettingsFragment extends BaseFragment {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
                 prefManager.put(PrefManager.Key.DOWNLOAD_TO_SDCARD, isChecked);
+                mDownloadLocationText.setText(userPrefs.getDownloadFolderPath());
             }
         });
 

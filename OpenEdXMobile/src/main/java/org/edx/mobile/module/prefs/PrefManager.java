@@ -227,6 +227,7 @@ public class PrefManager {
         public static final String APP_INFO = "pref_app_info";
         public static final String USER_PREF = "pref_user";
         public static final String SD_CARD = "pref_sd_card";
+        public static final String DOWNLOAD_LOCATION_PREF = "pref_download_location";
     }
 
     /**
@@ -256,6 +257,7 @@ public class PrefManager {
         public static final String UserPrefVideoModel = "UserPrefVideoModel";
         public static final String LAST_COURSE_STRUCTURE_FETCH = "LastCourseStructureFetch";
         public static final String DOWNLOAD_TO_SDCARD = "download_to_sdcard";
+        public static final String DOWNLOAD_LOCATION_PATH = "download_location_path";
 
 
     }

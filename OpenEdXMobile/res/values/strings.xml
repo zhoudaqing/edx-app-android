@@ -47,6 +47,11 @@
     <!-- Label explaining the download location setting in detail -->
     <string name="setting_download_location_detail">Videos will be downloaded to the SD Card if available</string>
 
+    <!-- Label for the Download location switch -->
+    <string name="setting_download_location_header">Video Download Location</string>
+    <!-- Label explaining the download location setting in detail -->
+    <string name="setting_download_location">!Updated with location</string>
+
     <!-- Certificate Page -->
     <!-- Description of button that will open the certificate sharing menu -->
     <string name="share_certificate_button">Share your certificate</string>

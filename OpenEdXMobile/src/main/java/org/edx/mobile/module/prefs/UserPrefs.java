@@ -46,6 +46,47 @@ public class UserPrefs {
         return onlyWifi;
     }
 
+    public String getDownloadFolderPath(){
+        PrefManager prefManager = new PrefManager(context, PrefManager.Pref.DOWNLOAD_LOCATION_PREF);
+        String downloadPath = prefManager.getString(PrefManager.Key.DOWNLOAD_LOCATION_PATH);
+
+        //TODO: This is DEMO Code and should be removed when further implementation is complete
+        // This will force update the path setting based on the SD Card slot selection.
+        downloadPath =null;
+        // ^^ DEMO Code
+
+        if (downloadPath == null){
+            // Retrieves a list of external storage directories on the Device.
+            // 4.4+ Android devices will return a list of external locations if the
+            // SD card is available. Otherwise it will return a single location to store data.
+            File[] externalDirs = ContextCompat.getExternalFilesDirs(context, "Android");
+            File android;
+            //Android Preferred location will be either the internal partition or an SDCard
+            android = externalDirs[0];
+
+            PrefManager sdPrefManager = new PrefManager(context, PrefManager.Pref.SD_CARD);
+            boolean downloadToSDCard = sdPrefManager.getBoolean(PrefManager.Key.DOWNLOAD_TO_SDCARD, false);
+
+            if( downloadToSDCard && externalDirs.length > 1 && externalDirs[1] != null){
+                // If a secondary location is in the list it is the SD Card location we
+                // would like to use.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
+                        Environment.isExternalStorageRemovable(externalDirs[1])){
+                    // Verify that the storage location is an external storage location
+                    // and only use this path if it is.
+                    android = externalDirs[1];
+                } else {
+                    android = externalDirs[1];
+                }
+            }
+            File downloadsDir = new File(android, "data");
+            downloadPath = downloadsDir.getAbsolutePath();
+            prefManager.put(PrefManager.Key.DOWNLOAD_LOCATION_PATH, downloadPath);
+        }
+
+        return downloadPath;
+    }
+
     /**
      * Returns user storage directory under /Android/data/ folder for the currently logged in user.
      * This is the folder where all video downloads should be kept.
@@ -58,29 +99,30 @@ public class UserPrefs {
         // Retrieves a list of external storage directories on the Device.
         // 4.4+ Android devices will return a list of external locations if the
         // SD card is available. Otherwise it will return a single location to store data.
-        File[] externalDirs = ContextCompat.getExternalFilesDirs(context, "Android");
-        File android;
-        //Android Preferred location will be either the internal partition or an SDCard
-        android = externalDirs[0];
+//        File[] externalDirs = ContextCompat.getExternalFilesDirs(context, "Android");
+//        File android;
+//        //Android Preferred location will be either the internal partition or an SDCard
+//        android = externalDirs[0];
 
-        PrefManager prefManager = new PrefManager(context, PrefManager.Pref.SD_CARD);
-        boolean downloadToSDCard = prefManager.getBoolean(PrefManager.Key.DOWNLOAD_TO_SDCARD, false);
+//        PrefManager prefManager = new PrefManager(context, PrefManager.Pref.SD_CARD);
+//        boolean downloadToSDCard = prefManager.getBoolean(PrefManager.Key.DOWNLOAD_TO_SDCARD, false);
+//
+//        if( downloadToSDCard && externalDirs.length > 1 && externalDirs[1] != null){
+//            // If a secondary location is in the list it is the SD Card location we
+//            // would like to use.
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
+//                    Environment.isExternalStorageRemovable(externalDirs[1])){
+//                // Verify that the storage location is an external storage location
+//                // and only use this path if it is.
+//                android = externalDirs[1];
+//            } else {
+//                android = externalDirs[1];
+//            }
+//        }
 
-        if( downloadToSDCard && externalDirs.length > 1 && externalDirs[1] != null){
-            // If a secondary location is in the list it is the SD Card location we
-            // would like to use.
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
-                    Environment.isExternalStorageRemovable(externalDirs[1])){
-                // Verify that the storage location is an external storage location
-                // and only use this path if it is.
-                android = externalDirs[1];
-            } else {
-                android = externalDirs[1];
-            }
-        }
-
-        File downloadsDir = new File(android, "data");
-        File edxDir = new File(downloadsDir, profile.username);
+//        File downloadsDir = new File(android, "data");
+        File downloadDir = new File(getDownloadFolderPath());
+        File edxDir = new File(downloadDir, profile.username);
         edxDir.mkdirs();
         try {
             File noMediaFile = new File(edxDir, ".nomedia");
