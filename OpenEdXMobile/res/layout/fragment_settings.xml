@@ -100,7 +100,7 @@
             <Switch
                 android:id="@+id/download_location_switch"
                 style="@style/edX.Widget.Switch"
-                android:checked="false" />
+                android:checked="true" />
         </LinearLayout>
     </LinearLayout>
 

@@ -1,9 +1,6 @@
 package org.edx.mobile.view;
 
-import android.content.Context;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,7 +35,6 @@ public class SettingsFragment extends BaseFragment {
 
     private Switch wifiSwitch;
     private Switch mSDCardSwitch;
-    private LinearLayout mSDCardSetting;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
