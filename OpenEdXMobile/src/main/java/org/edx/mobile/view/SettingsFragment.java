@@ -12,7 +12,6 @@ import android.widget.LinearLayout;
 import android.widget.Switch;
 
 import com.google.inject.Inject;
-import com.google.repacked.antlr.v4.runtime.misc.NotNull;
 
 import org.edx.mobile.R;
 import org.edx.mobile.base.BaseFragment;
@@ -20,10 +19,10 @@ import org.edx.mobile.core.IEdxEnvironment;
 import org.edx.mobile.logger.Logger;
 import org.edx.mobile.module.analytics.ISegment;
 import org.edx.mobile.module.prefs.PrefManager;
+import org.edx.mobile.util.FileUtil;
 import org.edx.mobile.view.dialog.IDialogCallback;
 import org.edx.mobile.view.dialog.NetworkCheckDialogFragment;
 
-import java.io.File;
 
 public class SettingsFragment extends BaseFragment {
 
@@ -85,25 +84,20 @@ public class SettingsFragment extends BaseFragment {
         });
     }
 
-    private boolean isRemovableStorageAvailable(@NotNull Context context){
-        int currentapiVersion = android.os.Build.VERSION.SDK_INT;
-        if (currentapiVersion >= Build.VERSION_CODES.LOLLIPOP) {
-            File[] fileList = context.getExternalFilesDirs("Android");
-            for (File extFile : fileList){
-                if (extFile != null && Environment.isExternalStorageRemovable(extFile)){
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
+
 
     private void updateSDCardSwitch(){
-        if (this.isRemovableStorageAvailable(getContext())) {
-            final PrefManager prefManager =
-                    new PrefManager(getActivity().getBaseContext(), PrefManager.Pref.SD_CARD);
+        final PrefManager prefManager =
+                new PrefManager(getActivity().getBaseContext(), PrefManager.Pref.SD_CARD);
+        if (FileUtil.isRemovableStorageAvailable(getContext())) {
+            mSDCardSwitch.setEnabled(true);
+
             mSDCardSwitch.setOnCheckedChangeListener(null);
             mSDCardSwitch.setChecked(prefManager.getBoolean(PrefManager.Key.DOWNLOAD_TO_SDCARD, true));
+            if ( !prefManager.contains(PrefManager.Key.DOWNLOAD_TO_SDCARD)){
+                // Initialize the preference
+                prefManager.put(PrefManager.Key.DOWNLOAD_TO_SDCARD, true);
+            }
             mSDCardSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
@@ -111,7 +105,8 @@ public class SettingsFragment extends BaseFragment {
                 }
             });
         } else {
-            mSDCardSetting.setVisibility(View.INVISIBLE);
+            prefManager.put(PrefManager.Key.DOWNLOAD_TO_SDCARD, false);
+            mSDCardSwitch.setEnabled(false);
         }
 
     }
