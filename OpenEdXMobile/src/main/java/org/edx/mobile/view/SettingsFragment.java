@@ -49,7 +49,6 @@ public class SettingsFragment extends BaseFragment {
         final View layout = inflater.inflate(R.layout.fragment_settings, container, false);
         wifiSwitch = (Switch) layout.findViewById(R.id.wifi_setting);
         mSDCardSwitch = (Switch) layout.findViewById(R.id.download_location_switch);
-        mSDCardSetting = (LinearLayout) layout.findViewById(R.id.sd_card_setting);
 
         updateWifiSwitch();
         updateSDCardSwitch();
