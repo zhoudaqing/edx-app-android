@@ -70,6 +70,7 @@ public class UserProfileFragment
     protected final Logger logger = new Logger(getClass().getName());
 
     private SnackbarErrorNotification snackbarErrorNotification;
+    private boolean shouldShowOptionMenu = false;
 
     @Nullable
     @Override
@@ -80,7 +81,9 @@ public class UserProfileFragment
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.edit_profile, menu);
+        if (shouldShowOptionMenu) {
+            inflater.inflate(R.menu.edit_profile, menu);
+        }
     }
 
     @Override
@@ -185,6 +188,11 @@ public class UserProfileFragment
                 viewHolder.contentError.getRoot().setVisibility(View.GONE);
                 viewHolder.profileBodyContent.setVisibility(View.VISIBLE);
                 viewHolder.profileHeader.setVisibility(View.VISIBLE);
+
+                // Now that the profile is loaded, we can show the menu items
+                shouldShowOptionMenu = true;
+                getActivity().invalidateOptionsMenu();
+
                 onFinish();
             }
 
@@ -225,6 +233,11 @@ public class UserProfileFragment
                         });
                 viewHolder.contentError.contentErrorAction.setVisibility(View.VISIBLE);
                 viewHolder.profileHeader.setVisibility(View.GONE);
+
+                // Since we don't have the user's profile, we don't need to show the menu items
+                shouldShowOptionMenu = false;
+                getActivity().invalidateOptionsMenu();
+
                 onFinish();
             }
 
